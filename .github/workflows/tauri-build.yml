@@ -42,7 +42,7 @@ jobs:
             patchelf \
             libssl-dev \
             pkg-config \
-            libsoup3-dev
+            libsoup-3.0-dev
 
       - name: Install Tauri CLI
         run: cargo install tauri-cli --locked
