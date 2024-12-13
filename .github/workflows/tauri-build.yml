@@ -1,62 +1,63 @@
-name: Tauri Build and Release
+name: Build Tauri App
 
 on:
   push:
-    tags:
-      - "v*" # Aciona o workflow apenas para tags que começam com "v"
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  build:
-    name: Build for All Platforms
+  build-tauri:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Configura Node.js e PNPM
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20
-          cache: "yarn"
+          node-version: "18"
+          cache: "pnpm"
 
-      - name: Install Yarn
-        run: npm install -g yarn
+      - name: Install PNPM
+        run: npm install -g pnpm
 
+      # Setup Rust, cargo e Tauri
       - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-
-      - name: Add Rust targets
-        run: |
-          rustup target add x86_64-pc-windows-gnu x86_64-unknown-linux-gnu aarch64-apple-darwin x86_64-apple-darwin
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
-      - name: Build for macOS ARM (Apple Silicon)
-        if: matrix.os == 'macos-latest'
-        run: yarn tauri:build:mac-arm
+      - name: Build frontend (Next.js)
+        run: pnpm build
 
-      - name: Build for macOS Intel
-        if: matrix.os == 'macos-latest'
-        run: yarn tauri:build:mac-intel
+      # Ajusta algumas dependências para cada plataforma, se necessário
+      # Ex: no Linux pode ser necessário instalar pacotes extras.
+      - name: Install platform-specific dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          # Caso seja necessário instalar toolchains
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev \
+            libappindicator3-dev patchelf
 
-      - name: Build for Linux
-        if: matrix.os == 'ubuntu-latest'
-        run: yarn tauri:build:linux:deb
+      # Build Tauri
+      # Você pode usar as diferentes scripts do package.json para cada SO se precisar.
+      - name: Build Tauri
+        run: pnpm tauri:build
 
-      - name: Build for Windows
-        if: matrix.os == 'windows-latest'
-        run: yarn tauri:build:win
-
-      - name: Upload build artifacts
+      # Artefatos: subir o resultado do build
+      # Ajuste o caminho conforme a localização do binário final (normalmente em `src-tauri/target/release/`)
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: build-${{ matrix.os }}
-          path: src-tauri/target/release/bundle/
+          name: tauri-${{ matrix.os }}
+          path: |
+            src-tauri/target/release/bundle/**/*
