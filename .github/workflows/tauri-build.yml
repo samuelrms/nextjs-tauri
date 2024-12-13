@@ -43,7 +43,6 @@ jobs:
             libssl-dev \
             pkg-config
 
-      # Instala a CLI do Tauri
       - name: Install Tauri CLI
         run: cargo install tauri-cli --locked
 
