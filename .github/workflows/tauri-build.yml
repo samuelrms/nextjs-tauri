@@ -34,52 +34,29 @@ jobs:
 
       - name: Add Rust targets
         run: |
-          rustup target add x86_64-pc-windows-gnu x86_64-unknown-linux-gnu universal-apple-darwin
+          rustup target add x86_64-pc-windows-gnu x86_64-unknown-linux-gnu aarch64-apple-darwin x86_64-apple-darwin
 
       - name: Install dependencies
         run: yarn install
 
-      - name: Build the application
-        run: yarn tauri build
+      - name: Build for macOS ARM (Apple Silicon)
+        if: matrix.os == 'macos-latest'
+        run: yarn tauri:build:mac-arm
+
+      - name: Build for macOS Intel
+        if: matrix.os == 'macos-latest'
+        run: yarn tauri:build:mac-intel
+
+      - name: Build for Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: yarn tauri:build:linux:deb
+
+      - name: Build for Windows
+        if: matrix.os == 'windows-latest'
+        run: yarn tauri:build:win
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: build
+          name: build-${{ matrix.os }}
           path: src-tauri/target/release/bundle/
-
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: build
-          path: release_artifacts
-
-      - name: Compress artifacts
-        run: zip -r release_artifacts.zip release_artifacts/
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: |
-            ### Changelog
-            - Build automático gerado para macOS, Linux (.deb e .AppImage) e Windows.
-
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1.0.2
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release_artifacts.zip
-          asset_name: release_artifacts.zip
-          asset_content_type: application/zip
