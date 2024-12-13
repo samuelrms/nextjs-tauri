@@ -28,9 +28,12 @@ serde_json = "1"
 linker = "x86_64-w64-mingw32-gcc"
 
 # Linux-specific dependencies
-[target.'cfg(target_os = "linux")'.dependencies]
-libc = "0.2" # For compatibility with Linux
-openssl-sys = "0.9" # Required for SSL/TLS on Linux
+[target.armv7-unknown-linux-gnueabihf]
+linker = "arm-linux-gnueabihf-gcc"
+
+# Linux-specific dependencies
+[target.aarch64-unknown-linux-gnu]
+linker = "aarch64-linux-gnu-gcc"
 
 # macOS-specific dependencies
 [target.'cfg(target_os = "macos")'.dependencies]
