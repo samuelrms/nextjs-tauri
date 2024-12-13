@@ -41,7 +41,8 @@ jobs:
             libayatana-appindicator3-dev \
             patchelf \
             libssl-dev \
-            pkg-config
+            pkg-config \
+            libsoup3-dev
 
       - name: Install Tauri CLI
         run: cargo install tauri-cli --locked
