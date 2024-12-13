@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 const bodyClassName = twMerge(
-  "max-w-screen min-h-screen antialiased text-foreground",
+  "max-w-screen min-h-screen antialiased text-foreground pt-3",
   roboto.className
 );
 
@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body className={bodyClassName}>
         <Providers>{children}</Providers>
       </body>
