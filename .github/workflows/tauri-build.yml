@@ -1,0 +1,85 @@
+name: Tauri Build and Release
+
+on:
+  push:
+    tags:
+      - "v*" # Aciona o workflow apenas para tags que começam com "v"
+
+jobs:
+  build:
+    name: Build for All Platforms
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "pnpm"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Add Rust targets
+        run: |
+          rustup target add x86_64-pc-windows-gnu x86_64-unknown-linux-gnu universal-apple-darwin
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build the application
+        run: pnpm tauri build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: src-tauri/target/release/bundle/
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build
+          path: release_artifacts
+
+      - name: Compress artifacts
+        run: zip -r release_artifacts.zip release_artifacts/
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ### Changelog
+            - Build automático gerado para macOS, Linux (.deb e .AppImage) e Windows.
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1.0.2
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: release_artifacts.zip
+          asset_name: release_artifacts.zip
+          asset_content_type: application/zip
