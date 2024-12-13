@@ -14,8 +14,8 @@
     "withGlobalTauri": true
   },
   "build": {
-    "beforeBuildCommand": "pnpm build",
-    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "yarn build",
+    "beforeDevCommand": "yarn dev",
     "devUrl": "http://localhost:3000",
     "frontendDist": "../out"
   },
