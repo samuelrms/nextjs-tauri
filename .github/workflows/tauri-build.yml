@@ -33,7 +33,6 @@ jobs:
       - name: Add WebKitTeam PPA (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo add-apt-repository ppa:webkit-team/ppa -y
           sudo apt-get update
 
       - name: Install platform-specific dependencies (Linux)
@@ -49,7 +48,7 @@ jobs:
             libappindicator3-dev \
             librsvg2-dev \
             patchelf \
-            libsoup-3.0-dev
+            libsoup2.4-dev
 
       - name: Install Tauri CLI
         run: cargo install tauri-cli --locked
